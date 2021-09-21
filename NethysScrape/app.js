@@ -3,6 +3,9 @@
  * Let's watch them redesign the site entirely...
  *
  * Note: Currently fumbles on spells with multiple on 1 page. I don't trust that'll stay as-is anyway so I'm not reworking. Heightening has removed most those anyway.
+ * 
+ * Orksork note: The site was redesigned, I've added patches for a fix. IMO this should be re-written to use the "Spells" url instead of the provided "SpellLists",
+ *   which now links to a filterable table view of spells with info available to filter out the spell sources *before* hitting the spell pages which otherwise results in unnecessary traffic.
  */
 
 /**
@@ -23,11 +26,12 @@ const testRun = false;
 var htmlTransform = (h) => cheerio.load(h);
 
 const spellListRoots = [
-    "https://2e.aonprd.com/Spells.aspx?Focus=true&Tradition=0",
-    "https://2e.aonprd.com/Spells.aspx?Tradition=1",
-    "https://2e.aonprd.com/Spells.aspx?Tradition=2",
-    "https://2e.aonprd.com/Spells.aspx?Tradition=3",
-    "https://2e.aonprd.com/Spells.aspx?Tradition=4"
+    "https://2e.aonprd.com/SpellLists.aspx?Focus=true&Tradition=0",
+    "https://2e.aonprd.com/SpellLists.aspx?Tradition=1",
+    "https://2e.aonprd.com/SpellLists.aspx?Tradition=2",
+    "https://2e.aonprd.com/SpellLists.aspx?Tradition=3",
+    "https://2e.aonprd.com/SpellLists.aspx?Tradition=4",
+    "https://2e.aonprd.com/SpellLists.aspx?Tradition=5"
 ];
 const skipBooks = [
     "Core Rulebook",
@@ -80,7 +84,7 @@ async function loadSpell(url) {
 
         var activeItem = null;
         var subItem = null;
-        $('#ctl00_MainContent_DetailedOutput').get(0).childNodes.forEach((elem, i) => {
+        $('#ctl00_RadDrawer1_Content_MainContent_DetailedOutput').get(0).childNodes.forEach((elem, i) => {
             var e = cheerio(elem);
             if (e.is('span.trait')) { spellData.traits.push(e.text().toLowerCase()); }
             else if (e.is('b') || e.is('h3')) {
@@ -166,11 +170,15 @@ async function loadAllSpells() {
                 'transform': htmlTransform
             });
             console.log("Querying " + spellListRoots[ridx]);
-            var spellLinks = $('#ctl00_MainContent_DetailedOutput > a');
+            var spellLinks = $('#ctl00_RadDrawer1_Content_MainContent_DetailedOutput > a');
             for (var idx = 0; idx < spellLinks.length; idx++) {
                 console.log("Reading spell " + idx + "/" + spellLinks.length);
                 var a = spellLinks[idx];
                 var spellUrl = cheerio(a).attr('href');
+                if(spellUrl == "PFS.aspx") {
+                    //Each spell's pre-image links to the pathfinder society page. This is a dumb hack to skip those but it works.
+                    continue;
+                }
                 if (!loadedSpells[spellUrl]) {
                     loadedSpells[spellUrl] = true;
                     if (idx < 10 || !testRun) {
@@ -184,7 +192,7 @@ async function loadAllSpells() {
             };
         }
         console.log(spells);
-        fs.writeFileSync("spells.json", JSON.stringify(spells));
+        fs.writeFileSync("spells.json", JSON.stringify(spells, null, 4));
     }
     catch (err) {
         console.error("Error loading root spell page");
