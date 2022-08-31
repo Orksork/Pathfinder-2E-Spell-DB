@@ -122,22 +122,22 @@ async function loadSpell(url) {
                 subItem = null;
                 if (!spellData[activeItem]) spellData[activeItem] = "";
             }
-            else if (e.is('img.actiondark')) {
+            else if (e.is('span')) {
                 if (activeItem == 'cast') {
-                    switch (e.attr('src')) {
-                        case "Images\\Actions\\OneAction.png":
+                    switch (e.attr('title')) {
+                        case "Single Action":
                             spellData.action = '1';
                             break;
-                        case 'Images\\Actions\\TwoActions.png':
+                        case 'Two Actions':
                             spellData.action = '2';
                             break;
-                        case 'Images\\Actions\\ThreeActions.png':
+                        case 'Three Actions':
                             spellData.action = '3';
                             break;
-                        case 'Images\\Actions\\Reaction.png':
+                        case 'Reaction':
                             spellData.action = 'reaction';
                             break;
-                        case 'Images\\Actions\\FreeAction.png':
+                        case 'Free Action':
                             spellData.action = 'free';
                             break;
                     }
